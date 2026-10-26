@@ -1,0 +1,6 @@
+{
+  "name": "WorkForce AI — Employee Daily Task & Review Management",
+  "description": "Comprehensive daily task assignments, work reports, tomorrow's plan, manager review workflows, and grounded AI assistant for enterprise teams.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

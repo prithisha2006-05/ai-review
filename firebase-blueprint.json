@@ -1,0 +1,146 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Account",
+      "description": "User authentication profile with assigned company role",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["manager", "employee"] },
+        "employeeId": { "type": "string" },
+        "department": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "name", "role", "employeeId"]
+    },
+    "employees": {
+      "title": "Employee Profile",
+      "description": "Enterprise directory profile for staff member",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeCode": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "department": { "type": "string" },
+        "title": { "type": "string" },
+        "managerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Remote", "On Leave"] },
+        "joinDate": { "type": "string" },
+        "phone": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "employeeCode", "name", "department", "title"]
+    },
+    "tasks": {
+      "title": "Task Assignment",
+      "description": "Daily task assigned by manager with deliverables and deadlines",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "department": { "type": "string" },
+        "assigneeId": { "type": "string" },
+        "assigneeName": { "type": "string" },
+        "assignedBy": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High", "Critical"] },
+        "deadline": { "type": "string" },
+        "expectedResult": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "In Progress", "Under Review", "Completed", "Overdue"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "assigneeId", "priority", "deadline", "expectedResult", "status"]
+    },
+    "daily_reports": {
+      "title": "Daily Work Report",
+      "description": "End-of-day accountability report submitted by employee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "department": { "type": "string" },
+        "date": { "type": "string" },
+        "completedWork": { "type": "array", "items": { "type": "string" } },
+        "workInProgress": { "type": "array", "items": { "type": "string" } },
+        "pendingTasks": { "type": "array", "items": { "type": "string" } },
+        "toolsUsed": { "type": "array", "items": { "type": "string" } },
+        "blockers": { "type": "string" },
+        "workLinks": { "type": "array", "items": { "type": "string" } },
+        "timeSpentHours": { "type": "number" },
+        "reviewStatus": { "type": "string", "enum": ["Pending Review", "Approved", "Needs Improvement"] },
+        "managerFeedback": { "type": "string" },
+        "reviewedBy": { "type": "string" },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "employeeId", "date", "completedWork", "reviewStatus"]
+    },
+    "tomorrow_plans": {
+      "title": "Tomorrow Plan",
+      "description": "Scheduled work plan, hours estimation, and dependencies for next business day",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "department": { "type": "string" },
+        "date": { "type": "string" },
+        "plannedTasks": { "type": "array" },
+        "expectedDeliverables": { "type": "string" },
+        "dependencies": { "type": "string" },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "employeeId", "date", "plannedTasks"]
+    },
+    "manager_reviews": {
+      "title": "Manager Review",
+      "description": "Evaluation, quality rating score, and constructive feedback from management",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "reportId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "reviewerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending Review", "Approved", "Needs Improvement"] },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comments": { "type": "string" },
+        "actionableSteps": { "type": "array", "items": { "type": "string" } },
+        "reviewedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "reportId", "employeeId", "reviewerId", "status", "rating", "comments"]
+    },
+    "notifications": {
+      "title": "Notification Item",
+      "description": "In-app and webhook notification item for reminders and status updates",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "channel": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "message", "recipientId", "isRead"]
+    },
+    "audit_logs": {
+      "title": "Audit Log",
+      "description": "Immutable security and activity audit records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string" },
+        "performedBy": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "action", "performedBy", "timestamp"]
+    }
+  }
+}

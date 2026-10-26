@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user has manager / admin role
+    function isManager() {
+      return isAuthenticated() && 
+        (request.auth.token.role == 'manager' || 
+         request.auth.token.role == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['manager', 'admin']);
+    }
+
+    // Helper function to check if the user is the owner of an employee record
+    function isEmployeeOwner(employeeId) {
+      return isAuthenticated() && 
+        (request.auth.token.employeeId == employeeId || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.employeeId == employeeId);
+    }
+
+    // User Accounts Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isManager());
+    }
+
+    // Employee Profiles Collection (Directory of 100+ employees)
+    match /employees/{employeeId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isManager();
+    }
+
+    // Task Assignments Collection
+    match /tasks/{taskId} {
+      // Managers can read all tasks; employees can only read tasks assigned to them
+      allow read: if isManager() || isEmployeeOwner(resource.data.assigneeId);
+      
+      // Only managers can create or delete tasks
+      allow create, delete: if isManager();
+      
+      // Managers can update anything; employees can only update task status & completedAt
+      allow update: if isManager() || 
+        (isEmployeeOwner(resource.data.assigneeId) && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'completedAt', 'updatedAt']));
+    }
+
+    // Daily Work Reports Collection
+    match /daily_reports/{reportId} {
+      // Managers can view all reports; employees can only view their own reports
+      allow read: if isManager() || isEmployeeOwner(resource.data.employeeId);
+      
+      // Employees can create their own reports
+      allow create: if isEmployeeOwner(request.resource.data.employeeId);
+      
+      // Employees can update report content before review; managers can update reviewStatus and feedback
+      allow update: if (isEmployeeOwner(resource.data.employeeId) && resource.data.reviewStatus == 'Pending Review') ||
+                       isManager();
+      
+      allow delete: if isManager();
+    }
+
+    // Tomorrow's Work Plans Collection
+    match /tomorrow_plans/{planId} {
+      allow read: if isManager() || isEmployeeOwner(resource.data.employeeId);
+      allow create, update: if isEmployeeOwner(request.resource.data.employeeId) || isManager();
+      allow delete: if isManager();
+    }
+
+    // Manager Reviews Collection
+    match /manager_reviews/{reviewId} {
+      // Employees can read their own reviews; managers can read all reviews
+      allow read: if isManager() || isEmployeeOwner(resource.data.employeeId);
+      // Only managers can create or modify reviews
+      allow write: if isManager();
+    }
+
+    // Notifications Collection
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.recipientId == 'all' || 
+         isEmployeeOwner(resource.data.recipientId) || 
+         isManager());
+      allow create: if isManager() || isAuthenticated();
+      allow update: if isAuthenticated() && 
+        (isEmployeeOwner(resource.data.recipientId) || resource.data.recipientId == 'all');
+      allow delete: if isManager();
+    }
+
+    // System Audit Logs Collection
+    match /audit_logs/{logId} {
+      allow read: if isManager();
+      allow create: if isAuthenticated();
+      allow update, delete: false; // Audit logs are immutable append-only records
+    }
+  }
+}
